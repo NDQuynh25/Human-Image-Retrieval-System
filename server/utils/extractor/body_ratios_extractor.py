@@ -1,7 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-import urllib.request
 from matplotlib import pyplot as plt
 
 # Khởi tạo MediaPipe Pose
@@ -92,8 +91,8 @@ def calculate_all_body_ratios(image):
 
 
 
-def extract_body_embedding_vector(image):
-    
+def extract_body_embedding(image):
+    print("okokok")
     ratios, annotated_image = calculate_all_body_ratios(image)
     
     if ratios is None:
