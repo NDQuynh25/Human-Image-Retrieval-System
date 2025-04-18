@@ -32,5 +32,5 @@
 ☐ | ☐ | Đặc trưng CNN | ResNet50/ResNet101 | 2048 | Nhận diện tổng quan
 ☐ | ☐ | Đặc trưng màu | Color Histogram (LAB) | 256 | Phân biệt qua trang phục
 ☐ | ☐ | Đặc trưng hình dáng | HOG | 3780 | Nhận diện dáng người
-☐ | ☐ | Đặc trưng khuôn mặt | FaceNet | 128 | Nhận diện cá nhân
+☐ | ☐ | Đặc trưng khuôn mặt | FaceNet | 512 | Nhận diện cá nhân
 ☐ | ☐ | Tỉ lệ cơ thể | MediaPipe Pose | 5-10 | Phân biệt hình thể
