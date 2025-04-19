@@ -62,6 +62,15 @@ def extract_features(image):
     return features
 
 
+   
+    try:
+        features["color"] = extract_color_embedding(image)
+        np.savetxt("color.txt", features["color"], fmt="%s")
+    except Exception as e:
+        print(f"[ERROR] Color extraction failed: {e}")
+        features["color"] = None
+
+
 def feature_extractor(image_file):
     image = read_image(image_file)
     print(f"[INFO] Original image shape: {image.shape}")

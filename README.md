@@ -34,3 +34,11 @@
 ☐ | ☐ | Đặc trưng hình dáng | HOG | 3780 | Nhận diện dáng người
 ☐ | ☐ | Đặc trưng khuôn mặt | FaceNet | 512 | Nhận diện cá nhân
 ☐ | ☐ | Tỉ lệ cơ thể | MediaPipe Pose | 5-10 | Phân biệt hình thể
+
+
+
+
+
+
+
+python -m server.app
