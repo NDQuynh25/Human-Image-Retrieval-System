@@ -49,6 +49,6 @@ def hog_feature(image_url):
 # Gọi hàm với URL ảnh hợp lệ (Không dùng Google Drive vì cần xác thực)
 print(hog_feature("https://drive.google.com/uc?id=1ajHjvMqBfATurG1yuEV7fFhv7GQ3ZeIc"))  # Thay URL ảnh thực tế
 
-import test
+import test4
 
-test.test()
+test4.test()

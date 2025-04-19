@@ -1,31 +1,52 @@
-import sys
-import os
 import datetime
-import asyncio
+import os
+
 
 # Use relative imports with dots
 from ..models.image_model import ImageModel
 from ..utils.extractor.feature_extractor import feature_extractor
 from ..utils.read_image import read_image_from_file_url
 
-def save_image_data(image_name, path, height, width, hog, rgb, hsv, pose):
-    # Tạo đối tượng ImageModel với UUID
-    image = ImageModel(
-       
+def save_image_data(image_url):
+    
+    try:
+        image_file = read_image_from_file_url(image_url)
+    except Exception as e:
+        print(f"Không thể đọc ảnh từ URL: {e}")
+        return None
+
+    try:
+        result = feature_extractor(image_file)
+        if result is None:
+            print("Không thể trích xuất đặc trưng từ ảnh.")
+            return None
+    except Exception as e:
+        print(f"Lỗi khi trích xuất đặc trưng từ ảnh: {e}")
+        return None
+
+    
+    
+    image_name = os.path.basename(image_url)
+    path = image_url
+    heigh = image_file.shape[0]
+    width = image_file.shape[1]
+    created_at = datetime.datetime.utcnow()
+    last_modified_at = datetime.datetime.utcnow()
+
+    image_data = ImageModel(
         image_name=image_name,
         path=path,
-        height=height,
+        height=heigh,
         width=width,
-        hog=hog,
-        rgb=rgb,
-        hsv=hsv,
-        pose=pose,
-        created_at=datetime.datetime.utcnow(),
-        last_modified_at=datetime.datetime.utcnow()
+        created_at=created_at,
+        last_modified_at=last_modified_at,
+        body_ratios=result["body_ratios"],
+        face=result["face"],
+        shape=result["shape"],
+        color=result["color"],  
     )
-    
-    # Lưu dữ liệu vào MongoDB
-    image.save()
+    image_data.save()
+    return image_data
 
 def search_image(image_url):
     try:
@@ -40,6 +61,45 @@ def search_image(image_url):
     except Exception as e:
         print(f"Lỗi khi trích xuất đặc trưng từ ảnh: {e}")
         return None
+
+
+
+
+
+
+
+def search_engine(features):
+    
+    body_ratios = features["body_ratios"]
+    face = features["face"]
+    shape = features["shape"]
+    color = features["color"]
+
+    final_vector = np.concatenate([
+        np.array(body_ratios),
+        np.array(face),
+        np.array(shape),
+        np.array(color)
+    ])
+
+    all_images = ImageModel.objects.all()
+    # Tìm kiếm ảnh dựa trên các đặc trưng
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def test_feature_extraction():
     # Đường dẫn đến ảnh test

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 # Use relative imports
-from ..services.image_service import search_image
+from ..services.image_service import search_image, save_image_data
 import tempfile
 import traceback
 image_routes = Blueprint('image_routes', __name__)
@@ -31,19 +31,25 @@ def upload_image_route():
     Endpoint for uploading image data
     """
     try:
-        data = request.get_json()
+        if 'image' not in request.files:
+            print("Không có ảnh được tải lên")
+            return jsonify({'error': 'Chưa có ảnh được tải lên'}), 400
+
+        image_file = request.files.getlist('image')[0]
+        print(f"Đã nhận file: {image_file.filename}")
         
-        image_name = data.get('image_name')
-        path = data.get('path')
-        height = data.get('height')
-        width = data.get('width')
-        hog = data.get('hog')
-        rgb = data.get('rgb')
-        hsv = data.get('hsv')
-        pose = data.get('pose')
+        # Lưu ảnh tạm thời
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp:
+                image_file.save(temp.name)
+                image_path = temp.name
+                print(f"Đã lưu ảnh tạm vào: {image_path}")
+        except Exception as e:
+            print(f"Lỗi khi lưu ảnh tạm: {str(e)}")
+            return jsonify({'error': f'Lỗi khi lưu ảnh tạm: {str(e)}'}), 500
+
+        save_image_data(image_path)
         
-        # Save image data into MongoDB
-        save_image_data(image_name, path, height, width, hog, rgb, hsv, pose)
         
         return jsonify({
             "status": "success",

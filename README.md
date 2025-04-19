@@ -35,7 +35,7 @@
 ☐ | ☐ | Đặc trưng khuôn mặt | FaceNet | 512 | Nhận diện cá nhân
 ☐ | ☐ | Tỉ lệ cơ thể | MediaPipe Pose | 5-10 | Phân biệt hình thể
 
-
+màu sắc quần áo, hình tổng quan quần áo, màu da
 
 
 

@@ -5,7 +5,7 @@ class ImageModel(Document):
     """Mô hình lưu trữ ảnh và các đặc trưng của ảnh"""
 
     meta = {
-        'collection': 'image_features_1',  # Tên collection (tên bảng) trong MongoDB
+        'collection': 'image_features',  # Tên collection (tên bảng) trong MongoDB
         'indexes': ['image_name', 'path'],  # Tạo chỉ mục cho các trường image_name và path
         'ordering': ['-created_at'],  # Sắp xếp giảm dần theo trường created_at
         'strict': False  # Cho phép lưu các trường không khai báo trong mô hình
@@ -21,7 +21,7 @@ class ImageModel(Document):
 
     # Các đặc trưng của ảnh
     features = DictField()  # Các đặc trưng tổng hợp (ví dụ: HOG, RGB, HSV, Pose)
-    hog = ListField(FloatField())  # Các đặc trưng HOG
-    rgb = ListField(FloatField())  # Các đặc trưng RGB
-    hsv = ListField(FloatField())  # Các đặc trưng HSV
-    pose = ListField(FloatField())  # Các đặc trưng Pose
+    body_ratios = ListField(FloatField())  # Các đặc trưng HOG
+    face = ListField(FloatField())  # Các đặc trưng RGB
+    shape = ListField(FloatField())  # Các đặc trưng HSV
+    color = ListField(FloatField())  # Các đặc trưng Pose

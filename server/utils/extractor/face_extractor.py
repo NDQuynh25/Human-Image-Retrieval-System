@@ -1,10 +1,4 @@
 import torch
-import numpy as np
-from PIL import Image
-import requests
-from io import BytesIO
-import matplotlib.pyplot as plt
-from scipy.spatial.distance import cosine
 from facenet_pytorch import MTCNN, InceptionResnetV1
 
 # Thiết bị tính toán

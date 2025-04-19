@@ -9,6 +9,7 @@ from rembg import remove
 from .body_ratios_extractor import extract_body_embedding
 from .face_extractor import extract_face_embedding
 from .shape_extractor import extract_shape_embedding
+from .color_extractor import extract_color_embedding
 
 
 def read_image(image_file):
@@ -53,22 +54,28 @@ def extract_features(image):
     try:
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         features["shape"] = extract_shape_embedding(gray_image)
-        # Change np.save to np.savetxt since you want to save as text with fmt parameter
+       
         np.savetxt("shape.txt", features["shape"], fmt="%s")
     except Exception as e:
         print(f"[ERROR] Shape extraction failed: {e}")
         features["shape"] = None
 
-    return features
+    
 
-
-   
     try:
         features["color"] = extract_color_embedding(image)
         np.savetxt("color.txt", features["color"], fmt="%s")
     except Exception as e:
         print(f"[ERROR] Color extraction failed: {e}")
         features["color"] = None
+    
+
+    return features
+
+
+   
+    
+    
 
 
 def feature_extractor(image_file):
