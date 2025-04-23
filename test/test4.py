@@ -20,11 +20,11 @@ def load_image_from_url(url):
     
     # For HOG features, we need grayscale
     img = img.convert("L")  # Convert to grayscale
-    img = img.resize((256, 385))  
+    img = img.resize((128, 192))  
     return np.array(img)
 
 def extract_hog_features(image):
-    features, hog_image = hog(image, orientations=9, pixels_per_cell=(8, 8),
+    features, hog_image = hog(image, orientations=9, pixels_per_cell=(16, 16),
                               cells_per_block=(2, 2), visualize=True, block_norm='L2-Hys')
     return features, hog_image
 

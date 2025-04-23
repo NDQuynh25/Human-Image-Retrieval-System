@@ -1,6 +1,8 @@
 from mongoengine import Document, StringField, DateTimeField, UUIDField, IntField, DictField, ListField, FloatField
 import datetime
 
+from server.utils.extractor import clothing_color_extractor
+
 class ImageModel(Document):
     """Mô hình lưu trữ ảnh và các đặc trưng của ảnh"""
 
@@ -21,7 +23,5 @@ class ImageModel(Document):
 
     # Các đặc trưng của ảnh
     features = DictField()  # Các đặc trưng tổng hợp (ví dụ: HOG, RGB, HSV, Pose)
-    body_ratios = ListField(FloatField())  # Các đặc trưng HOG
-    face = ListField(FloatField())  # Các đặc trưng RGB
-    shape = ListField(FloatField())  # Các đặc trưng HSV
-    color = ListField(FloatField())  # Các đặc trưng Pose
+   
+    

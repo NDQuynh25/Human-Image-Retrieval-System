@@ -1,6 +1,6 @@
 import torch
 from facenet_pytorch import MTCNN, InceptionResnetV1
-
+import numpy as np
 # Thiết bị tính toán
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -22,4 +22,5 @@ def extract_face_embedding(image_file):
     face_tensor = face_tensor.unsqueeze(0).to(device)
     embedding = resnet(face_tensor).detach().cpu().numpy()[0]
     
-    return embedding
+    # Ép về float chuẩn + làm tròn
+    return [float(f) for f in np.round(np.array(embedding, dtype=np.float64), decimals=8)]

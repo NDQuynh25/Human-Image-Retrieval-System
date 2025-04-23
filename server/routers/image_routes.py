@@ -46,6 +46,7 @@ def upload_image_route():
                 print(f"Đã lưu ảnh tạm vào: {image_path}")
         except Exception as e:
             print(f"Lỗi khi lưu ảnh tạm: {str(e)}")
+            print(traceback.format_exc())
             return jsonify({'error': f'Lỗi khi lưu ảnh tạm: {str(e)}'}), 500
 
         save_image_data(image_path)
@@ -56,9 +57,10 @@ def upload_image_route():
             "message": "Image data saved successfully!"
         }), 200
     except Exception as e:
+        print(traceback.format_exc())
         return jsonify({
             "status": "error", 
-            "message": str(e)
+            "message": e
         }), 500
     
 

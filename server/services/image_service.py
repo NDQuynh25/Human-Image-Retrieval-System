@@ -1,5 +1,10 @@
 import datetime
 import os
+import traceback
+
+from skimage import feature
+
+from server.utils.extractor import clothing_color_extractor
 
 
 # Use relative imports with dots
@@ -21,6 +26,7 @@ def save_image_data(image_url):
             print("Không thể trích xuất đặc trưng từ ảnh.")
             return None
     except Exception as e:
+        print(traceback.format_exc())
         print(f"Lỗi khi trích xuất đặc trưng từ ảnh: {e}")
         return None
 
@@ -40,10 +46,15 @@ def save_image_data(image_url):
         width=width,
         created_at=created_at,
         last_modified_at=last_modified_at,
-        body_ratios=result["body_ratios"],
-        face=result["face"],
-        shape=result["shape"],
-        color=result["color"],  
+        features= {
+           
+            "body_ratios": result["body_ratios"] if result["body_ratios"] is not None else [],
+            "face": result["face"] if result["face"] is not None else [],
+            "shape": result["shape"] if result["shape"] is not None else [],
+            "clothing_color": result["clothing_color"] if result["clothing_color"] is not None else [],
+            "skin_color": result["skin_color"] if result["skin_color"] is not None else [],
+            
+        }
     )
     image_data.save()
     return image_data

@@ -1,91 +1,75 @@
-import requests
-from PIL import Image
-from io import BytesIO
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from deepface import DeepFace
+from PIL import Image
+import requests
+from io import BytesIO
 
-
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from server.utils.background_removal import background_removal
-
-# Tải ảnh từ Google Drive
-def load_image_from_drive(share_id):
-    url = f"https://drive.google.com/uc?id={share_id}"
-    response = requests.get(url)
-    image = Image.open(BytesIO(response.content)).convert("RGB")
-
-    background_removal(image)
-    return image
-
-# Chuyển ảnh PIL sang numpy array và đổi từ RGB sang BGR (OpenCV yêu cầu BGR)
-def convert_pil_to_cv2(image_pil):
-    # Convert ảnh PIL sang numpy array và đổi màu từ RGB sang BGR
-    return np.array(image_pil)[:, :, ::-1].astype(np.uint8)  # Convert RGB to BGR và đảm bảo kiểu uint8
-
-
-# Phát hiện khuôn mặt và vẽ hình chữ nhật quanh khuôn mặt
-def detect_and_draw_faces(image_cv2):
-    # Mô hình Haar Cascade để nhận diện khuôn mặt
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
-    # Chuyển đổi ảnh sang ảnh xám
-    gray = cv2.cvtColor(image_cv2, cv2.COLOR_BGR2GRAY)
-
-    # Phát hiện khuôn mặt
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-
-    # Vẽ hình chữ nhật quanh khuôn mặt
-    for (x, y, w, h) in faces:
-        cv2.rectangle(image_cv2, (x, y), (x + w, y + h), (0, 255, 0), 2)
+def process_image(image_input, target_ratio=(1, 1)):
+    """
+    Xử lý ảnh với tỉ lệ tùy chỉnh (mặc định 2:3)
     
-    return image_cv2, faces  # Trả về ảnh đã vẽ hình chữ nhật và thông tin khuôn mặt
-
-# Trích xuất đặc trưng khuôn mặt
-def extract_face_embedding(image_cv2, faces):
-    # Trích xuất đặc trưng khuôn mặt từ ảnh
-    embeddings = []
-    for (x, y, w, h) in faces:
-        # Cắt phần khuôn mặt ra khỏi ảnh
-        face = image_cv2[y:y+h, x:x+w]
-        # Trích xuất đặc trưng khuôn mặt
-        result = DeepFace.represent(face, model_name='VGG-Face', enforce_detection=False)
-        embeddings.append(result)
-    return embeddings
-
-# Lưu đặc trưng khuôn mặt vào file
-def save_embeddings_to_file(embeddings, filename="embeddings.txt"):
-    with open(filename, "w") as f:
-        for emb in embeddings:
-            f.write(str(emb) + "\n")
-    print(f"Đặc trưng đã được lưu vào {filename}")
-
-# Chạy toàn bộ
-#1qzKmY0JmSDFt9ue4yKp4XmKuQjYi9w98
-share_id = "1j_NelCC1oddffMdeg6xHgSuGPmo-fEg8"  
-#1j_NelCC1oddffMdeg6xHgSuGPmo-fEg8 
-image_pil = load_image_from_drive(share_id)
-image_cv2 = convert_pil_to_cv2(image_pil)
-
-# Phát hiện và vẽ khuôn mặt
-image_with_faces, faces = detect_and_draw_faces(image_cv2)
-
-# Trích xuất đặc trưng của khuôn mặt
-if len(faces) > 0:
-    embeddings = extract_face_embedding(image_cv2, faces)
-    print("Đặc trưng khuôn mặt được trích xuất:", embeddings)
+    Parameters:
+        image_input: Path ảnh hoặc URL hoặc numpy array
+        target_ratio: Tỉ lệ (width, height) mong muốn
+        mode: 'padding' (thêm viền đen) hoặc 'crop' (cắt bớt)
     
-    # Lưu đặc trưng vào file
-    save_embeddings_to_file(embeddings)
-else:
-    print("Không phát hiện khuôn mặt.")
+    Returns:
+        Ản đã xử lý dạng numpy array (RGB)
+    """
+    # Đọc ảnh từ nhiều nguồn
+    if isinstance(image_input, str):
+        if image_input.startswith(('http://', 'https://')):
+            response = requests.get(image_input)
+            img = np.array(Image.open(BytesIO(response.content)).convert('RGB'))
+        else:
+            img = cv2.imread(image_input)
+            if img is None:
+                img = np.array(Image.open(image_input).convert('RGB'))
+            else:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    else:
+        img = image_input.copy()
 
-# Hiển thị kết quả
-plt.figure(figsize=(8, 8))
-plt.imshow(cv2.cvtColor(image_with_faces, cv2.COLOR_BGR2RGB))  # Convert BGR to RGB for displaying
-plt.title("Khuôn mặt được phát hiện và trích xuất đặc trưng")
-plt.axis("off")
-plt.show()
+    height, width = img.shape[:2]
+    target_width = int(height * target_ratio[0] / target_ratio[1])
+    
+    
+    if width < target_width:
+        # Thiếu chiều rộng -> thêm padding trái/phải
+        delta = target_width - width
+        left = delta // 2
+        right = delta - left
+        img = cv2.copyMakeBorder(img, 0, 0, left, right, 
+                                cv2.BORDER_CONSTANT, value=[0, 0, 0])
+    elif width > target_width:
+        # Thừa chiều rộng -> thêm padding trên/dưới
+        delta = int((width * target_ratio[1] / target_ratio[0]) - height)
+        top = delta // 2
+        bottom = delta - top
+        img = cv2.copyMakeBorder(img, top, bottom, 0, 0,
+                                cv2.BORDER_CONSTANT, value=[0, 0, 0])
+
+    
+    return img
+
+# Sử dụng
+if __name__ == "__main__":
+    # Xử lý từ file local
+    local_img = process_image("https://i.pinimg.com/736x/d2/2a/7b/d22a7bfa0d7f27208ad505c258b27b16.jpg")
+    
+    # Xử lý từ URL
+    url_img = process_image("https://i.pinimg.com/736x/d2/2a/7b/d22a7bfa0d7f27208ad505c258b27b16.jpg")
+    
+    # Hiển thị kết quả
+    from matplotlib import pyplot as plt
+    plt.figure(figsize=(10, 5))
+    
+    plt.subplot(1, 2, 1)
+    plt.imshow(local_img)
+    plt.title("Padding Mode")
+    
+    plt.subplot(1, 2, 2)
+    plt.imshow(url_img)
+    plt.title("Crop Mode")
+    
+    plt.show()

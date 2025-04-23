@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+from skimage import feature
 
 
 # Khởi tạo MediaPipe Pose
@@ -99,13 +100,15 @@ def extract_body_embedding(image):
         print("Không phát hiện được người trong ảnh")
         return
     
-    return np.array([
+    features = [
         ratios.get("shoulder_hip_ratio", 0),
         ratios.get("head_torso_ratio", 0),
         ratios.get("arm_leg_ratio", 0),
         ratios.get("waist_thigh_ratio", 0),
         ratios.get("height_arm_ratio", 0),
       
-    ], dtype=np.float32)
+    ]
+    # Ép về float chuẩn + làm tròn
+    return [float(f) for f in np.round(np.array(features, dtype=np.float64), decimals=8)]
 
 

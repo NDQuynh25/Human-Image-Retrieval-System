@@ -1,5 +1,3 @@
-import sys
-import os
 import cv2
 import numpy as np
 from PIL import Image
@@ -9,7 +7,8 @@ from rembg import remove
 from .body_ratios_extractor import extract_body_embedding
 from .face_extractor import extract_face_embedding
 from .shape_extractor import extract_shape_embedding
-from .color_extractor import extract_color_embedding
+from .clothing_color_extractor import extract_clothing_color_embedding
+from .skin_color_extractor import extract_skin_color_embedding
 
 
 def read_image(image_file):
@@ -62,13 +61,23 @@ def extract_features(image):
 
     
 
+    # Extract clothing color vector
     try:
-        features["color"] = extract_color_embedding(image)
-        np.savetxt("color.txt", features["color"], fmt="%s")
+        features["clothing_color"] = extract_clothing_color_embedding(image)
+        print(features["clothing_color"])
+        np.savetxt("clothing_color.txt", features["clothing_color"], fmt="%s")
     except Exception as e:
-        print(f"[ERROR] Color extraction failed: {e}")
-        features["color"] = None
+        print(f"[ERROR] Clothing color extraction failed: {e}")
+        features["clothing_color"] = None
     
+
+
+    # Extract skin color vector
+    try:
+        features["skin_color"] = extract_skin_color_embedding(image)
+    except Exception as e:
+        print(f"[ERROR] Skin color extraction failed: {e}")
+        features["skin_color"] = None
 
     return features
 
@@ -91,6 +100,7 @@ def feature_extractor(image_file):
     for k, v in features.items():
         print(f"  - {k}: {'OK' if v is not None else 'Failed'}")
 
+    
     return features
 
 
