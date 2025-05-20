@@ -29,7 +29,7 @@ def extract_hog_features(image):
     return features, hog_image
 
 # 🔹 Link 2 ảnh
-url1 = "https://i.pinimg.com/736x/d2/2a/7b/d22a7bfa0d7f27208ad505c258b27b16.jpg"
+url1 = "https://i.pinimg.com/736x/e6/a8/e4/e6a8e437646c3287138e7fbd29c26eb5.jpg"
 url2 = "https://i.pinimg.com/474x/71/97/8d/71978d5d7116ba1805816b44e49c7ee9.jpg"
 def remove_background(image):
     image_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
@@ -63,16 +63,6 @@ plt.axis('off')
 plt.subplot(2, 2, 2)
 plt.imshow(hog_img1, cmap='inferno')
 plt.title("HOG ảnh 1")
-plt.axis('off')
-
-plt.subplot(2, 2, 3)
-plt.imshow(img2, cmap='gray')
-plt.title("Ảnh 2 (grayscale)")
-plt.axis('off')
-
-plt.subplot(2, 2, 4)
-plt.imshow(hog_img2, cmap='inferno')
-plt.title("HOG ảnh 2")
 plt.axis('off')
 
 plt.tight_layout()

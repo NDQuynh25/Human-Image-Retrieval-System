@@ -93,7 +93,7 @@ def calculate_all_body_ratios(image):
 
 
 def extract_body_embedding(image):
-    print("okokok")
+    
     ratios, annotated_image = calculate_all_body_ratios(image)
     
     if ratios is None:
