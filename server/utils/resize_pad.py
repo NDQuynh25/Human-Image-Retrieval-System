@@ -1,114 +1,86 @@
+import os
 import cv2
 import numpy as np
-import os
+from rembg import remove
+from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 
 def calculate_padding_color(image, border_size=20):
-    """
-    Tính toán màu padding từ các vùng viền xung quanh ảnh
-    """
     h, w = image.shape[:2]
-    
-    # Lấy các vùng viền (trên, dưới, trái, phải)
-    top_border = image[:border_size, :]
-    bottom_border = image[-border_size:, :]
-    left_border = image[:, :border_size]
-    right_border = image[:, -border_size:]
-    
-    # Kết hợp tất cả các vùng viền
-    all_borders = np.concatenate([
-        top_border.reshape(-1, 3),
-        bottom_border.reshape(-1, 3),
-        left_border.reshape(-1, 3),
-        right_border.reshape(-1, 3)
+    top = image[:border_size, :]
+    bottom = image[-border_size:, :]
+    left = image[:, :border_size]
+    right = image[:, -border_size:]
+
+    borders = np.concatenate([
+        top.reshape(-1, 3),
+        bottom.reshape(-1, 3),
+        left.reshape(-1, 3),
+        right.reshape(-1, 3)
     ])
-    
-    # Tính màu trung bình của các viền
-    avg_color = np.mean(all_borders, axis=0)
-    return tuple(np.round(avg_color).astype(int))
+    return tuple(np.round(np.mean(borders, axis=0)).astype(int))
 
 def resize_with_padding(image, target_size):
-    """
-    Resize ảnh và thêm padding dựa trên màu viền
-    """
     h, w = image.shape[:2]
     target_w, target_h = target_size
-    
-    # Tính tỷ lệ scale
     scale = min(target_w / w, target_h / h)
-    new_w = int(w * scale)
-    new_h = int(h * scale)
-    
-    # Resize ảnh
+    new_w, new_h = int(w * scale), int(h * scale)
+
     resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
-    
-    # Tính màu padding từ viền ảnh gốc
-    padding_color = calculate_padding_color(image)
-    
-    # Tạo ảnh nền với màu padding
-    padded_image = np.full((target_h, target_w, 3), padding_color, dtype=np.uint8)
-    
-    # Đặt ảnh đã resize vào giữa
+    pad_color = calculate_padding_color(image)
+    padded = np.full((target_h, target_w, 3), pad_color, dtype=np.uint8)
     x_offset = (target_w - new_w) // 2
     y_offset = (target_h - new_h) // 2
-    padded_image[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
-    
-    return padded_image
+    padded[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
+    return padded
+
+def remove_background(image_bgr: np.ndarray) -> np.ndarray:
+    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+    pil_image = Image.fromarray(image_rgb)
+    result_pil = remove(pil_image).convert("RGBA")  # giữ nền trong suốt
+    return np.array(result_pil)
 
 def process_image(index_filename_tuple, input_folder, output_folder, target_size):
     index, filename = index_filename_tuple
     input_path = os.path.join(input_folder, filename)
-    output_path = os.path.join(output_folder, f"person_{index + 1}.jpg")
+    output_path = os.path.join(output_folder, f"person_{index + 1}.png")  # PNG để giữ alpha
 
     try:
-        # Đọc ảnh
         image = cv2.imread(input_path)
         if image is None:
             print(f"⚠️ Không đọc được ảnh: {filename}")
             return
 
-        # Xử lý ảnh
-        processed_image = resize_with_padding(image, target_size)
-        
-        # Lưu ảnh
-        cv2.imwrite(output_path, processed_image)
-        print(f"✅ Đã xử lý: {filename} -> person_{index + 1}.jpg")
-        
+        padded = resize_with_padding(image, target_size)
+        final_rgba = remove_background(padded)
+        Image.fromarray(final_rgba).save(output_path)
+        print(f"✅ {filename} ➜ person_{index + 1}.png")
     except Exception as e:
-        print(f"❌ Lỗi khi xử lý {filename}: {str(e)}")
+        print(f"❌ Lỗi {filename}: {e}")
 
 def process_folder_parallel(input_folder, output_folder, target_size=(600, 900), max_workers=4):
-    """Xử lý song song thư mục ảnh"""
     os.makedirs(output_folder, exist_ok=True)
-    
-    # Lọc file ảnh
-    valid_extensions = ('.jpg', '.jpeg', '.png')
-    files = [f for f in os.listdir(input_folder) if f.lower().endswith(valid_extensions)]
-    
+    valid_exts = ('.jpg', '.jpeg', '.png')
+    files = [f for f in os.listdir(input_folder) if f.lower().endswith(valid_exts)]
+
     if not files:
-        print("⚠️ Không tìm thấy file ảnh nào trong thư mục nguồn")
+        print("⚠️ Không có ảnh nào trong thư mục.")
         return
-    
-    # Xử lý song song
+
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         executor.map(
-            partial(process_image, 
-                   input_folder=input_folder, 
-                   output_folder=output_folder, 
-                   target_size=target_size),
+            partial(process_image, input_folder=input_folder, output_folder=output_folder, target_size=target_size),
             enumerate(files)
         )
 
 if __name__ == '__main__':
-    # Cấu hình đường dẫn
-    input_dir = r"C:\Users\Admin\Documents\Human-Image-Retrieval-System\server\dataset\cut_img"
+    input_dir = r"C:\Users\Admin\Documents\Human-Image-Retrieval-System\server\dataset\raw_images"
     output_dir = r"C:\Users\Admin\Documents\Human-Image-Retrieval-System\server\dataset\images"
-    
-    # Kiểm tra và chạy chương trình
+
     if not os.path.exists(input_dir):
-        print(f"❌ Thư mục nguồn '{input_dir}' không tồn tại")
+        print(f"❌ Không tồn tại thư mục: {input_dir}")
     else:
-        print("🔄 Đang xử lý ảnh (tự động tính màu padding từ viền)...")
+        print("🔄 Đang xử lý ảnh (xóa phông và resize)...")
         process_folder_parallel(input_dir, output_dir)
-        print("🎉 Hoàn thành xử lý ảnh!")
+        print("🎉 Hoàn tất!")

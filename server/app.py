@@ -1,9 +1,11 @@
 from flask import Flask
 from flask_cors import CORS
+import sys
+import os
 
-# Use relative imports
 from .config.db_config import init_db
 from .routers.image_routes import image_routes
+from .config.cloudinary_config import config_cloudinary
 
 def create_app():
     app = Flask(__name__)
@@ -13,6 +15,9 @@ def create_app():
 
     # Kết nối MongoDB từ config
     init_db()
+
+    # Kết nối Cloudinary từ config
+    config_cloudinary()
     
     # Đăng ký routes
     app.register_blueprint(image_routes, url_prefix="/api/v1")
@@ -20,13 +25,11 @@ def create_app():
     return app
 
 if __name__ == "__main__":
-    # When running directly, we need to use absolute imports
-    import sys
-    import os
+   
+    
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
-    from server.config.db_config import init_db
-    from server.routers.image_routes import image_routes
+   
     
     app = create_app()
     app.run(debug=True, host='localhost', port=5000)

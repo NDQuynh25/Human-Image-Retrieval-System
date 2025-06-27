@@ -91,10 +91,9 @@ def feature_extractor(image_file):
     image = read_image(image_file)
     print(f"[INFO] Original image shape: {image.shape}")
 
-    image_no_bg = remove_background(image)
-    print(f"[INFO] Background removed. Shape: {image_no_bg.shape}")
+    
 
-    features = extract_features(image_no_bg)
+    features = extract_features(image)
 
     print("[INFO] Features extracted:")
     for k, v in features.items():

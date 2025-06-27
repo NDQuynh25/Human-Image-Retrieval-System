@@ -20,8 +20,8 @@ class ImageModel(Document):
     width = IntField(required=True)
     created_at = DateTimeField(default=datetime.datetime.utcnow)
     last_modified_at = DateTimeField(default=datetime.datetime.utcnow)
+    normalized_features = ListField()
 
-    # Các đặc trưng của ảnh
-    features = DictField()  # Các đặc trưng tổng hợp (ví dụ: HOG, RGB, HSV, Pose)
+    features = DictField()  
    
     

@@ -31,25 +31,27 @@ def upload_image_route():
     Endpoint for uploading image data
     """
     try:
-        if 'image' not in request.files:
+        if 'images' not in request.files:
             print("Không có ảnh được tải lên")
             return jsonify({'error': 'Chưa có ảnh được tải lên'}), 400
 
-        image_file = request.files.getlist('image')[0]
-        print(f"Đã nhận file: {image_file.filename}")
-        
-        # Lưu ảnh tạm thời
-        try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp:
-                image_file.save(temp.name)
-                image_path = temp.name
-                print(f"Đã lưu ảnh tạm vào: {image_path}")
-        except Exception as e:
-            print(f"Lỗi khi lưu ảnh tạm: {str(e)}")
-            print(traceback.format_exc())
-            return jsonify({'error': f'Lỗi khi lưu ảnh tạm: {str(e)}'}), 500
+        for file in request.files.getlist('images'):
+            image_file = file
+            print(f"Đã nhận file: {image_file.filename}")
+            
+            # Lưu ảnh tạm thời
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp:
+                    image_file.save(temp.name)
+                    image_path = temp.name
+                    print(f"Đã lưu ảnh tạm vào: {image_path}")
+            except Exception as e:
+                print(f"Lỗi khi lưu ảnh tạm: {str(e)}")
+                print(traceback.format_exc())
+                print(f"Lỗi file: {image_file.filename}")
+                return jsonify({'error': f'Lỗi khi lưu ảnh tạm: {str(e)}'}), 500
 
-        save_image_data(image_path)
+            save_image_data(image_path)
         
         
         return jsonify({
@@ -100,7 +102,7 @@ def search_image_route():
                 print("Không thể trích xuất đặc trưng từ ảnh")
                 return jsonify({'error': 'Không thể trích xuất đặc trưng từ ảnh'}), 500
             
-            return jsonify({'message': 'Đã nhận ảnh'}), 200
+            return jsonify({'message': 'Đã tìm kiếm ảnh', 'result': result}), 200
         except Exception as e:
             print(f"Lỗi khi trích xuất đặc trưng: {str(e)}")
             print(traceback.format_exc())
